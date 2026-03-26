@@ -1,19 +1,20 @@
 import re
+from typing import List, Tuple, Set
 
-def common_prefix(a, b):
+def common_prefix(a: str, b: str) -> str:
     i = 0
     while i < min(len(a), len(b)) and a[i] == b[i]:
         i += 1
     return a[:i]
 
-def similarity_score(prefix, word):
+def similarity_score(prefix: str, word: str) -> float:
     return len(prefix) / len(word)
 
-def tokenizer(text, threshold=0.5):
+def tokenizer(text: str, threshold: float = 0.5) -> List[str]:
     words = re.findall(r'\b\w+\b', text.lower())
     unique_words = list(set(words))
 
-    pairs = []
+    pairs: List[Tuple[str, str, str, float]] = []
 
     for w1 in unique_words:
         for w2 in unique_words:
@@ -25,18 +26,20 @@ def tokenizer(text, threshold=0.5):
 
     pairs.sort(key=lambda x: x[3], reverse=True)
 
-    top_k = max(1, int(len(pairs) * 0.4))
-    best_pairs = pairs[:top_k]
+    base_tokens: Set[str] = set()
+    suffix_tokens: Set[str] = set()
+    matched_words: Set[str] = set()
+    split_words: Set[str] = set()
 
-    base_tokens = set()
-    suffix_tokens = set()
-    matched_words = set()
-
-    for w1, w2, prefix, score in best_pairs:
+    for w1, w2, prefix, score in pairs:
         if score >= threshold:
+            if w2 in split_words:
+                continue
+
             base_tokens.add(prefix)
             matched_words.add(w1)
             matched_words.add(w2)
+            split_words.add(w2)
 
             suffix = w2[len(prefix):]
             if suffix:
