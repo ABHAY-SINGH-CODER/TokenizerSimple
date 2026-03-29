@@ -1,0 +1,28 @@
+PROJECT INVESTIGATOR WORKFLOW
+=============================
+
+1. DOCUMENT INGESTION
+   - The user loads a document (PDF or pure TXT) into the web interface directly from the primary navigation bar.
+   - Using the `PyMuPDF` (fitz) library, the backend safely iterates over each serialized page to extract flat text.
+
+2. TEXT CHUNKING
+   - The raw string of text is broken down mathematically.
+   - To make it comprehensible to a vector engine, it is partitioned through a "Sliding Window" chunking pipeline.
+   - Configuration used: 512 Tokens (Window Size) with 70 Tokens (Overlap). 
+   - Overlap ensures the text maintains adjacent contextual meaning without hard cutoffs mid-sentence.
+
+3. EMBEDDING GENERATION
+   - The document's text chunks are passed into an offline neural engine (`sentence-transformers/all-MiniLM-L6-v2`).
+   - Each chunk evaluates into a 384-dimensional dense vector space representation (an Embedding) which encapsulates the intrinsic meaning of that chunk.
+
+4. USER QUERY PIPELINE
+   - The user inputs a question or a command phrase into the "Ollama Web UI" cloned Chatbox.
+   - The provided query goes through the exact same embedding model to establish its coordinate in the 384-dimensional space.
+
+5. COSINE SIMILARITY RETRIEVAL
+   - The system utilizes `scikit-learn` to calculate the Cosine Similarity mathematically between the User's Embedded Query and every single Embedded Document Chunk.
+   - A dot product operation ranks the text snippets in terms of similarity accuracy (0.0 to 1.0 confidence).
+
+6. CHATBOT OUTPUT
+   - The system extracts the top 1 most relevant chunk (highest similarity score) and dynamically replies inside the Streamlit chat layout.
+   - The result appears instantaneously to the user, displaying the Confidence Metrics alongside the exact textual snapshot from their uploaded document.
